@@ -11,7 +11,7 @@ class DecisionTree():
         self.firstNode = None # Expected: DecisionTreeNode
         self.atributes = None # Expected: list()
 
-    def train(self, dataset: pd.DataFrame, targetClass: str, m: int):
+    def train(self, dataset: pd.DataFrame, targetClass: str, m: int, verbose: bool):
         if(dataset.shape[0] != dataset[targetClass].size):
             raise Exception("Number of rows in dataset != nmumber of labels in target class")
 
@@ -19,8 +19,10 @@ class DecisionTree():
         self.targetClass = targetClass
         self.atributes = dataset.columns.values.tolist()
 
-        print(self.dataset)
-        self.firstNode = DecisionTreeNode(self.dataset, self.targetClass, m)
+        if verbose:
+            print('DecisionTree\'s train data:')
+            print(self.dataset)
+        self.firstNode = DecisionTreeNode(self.dataset, self.targetClass, m, verbose)
 
     def eval(self, dataToEval: pd.DataFrame):
         for column in dataToEval.columns.values.tolist():
@@ -49,7 +51,7 @@ class DecisionTree():
         return(instanceClass)
 
 class DecisionTreeNode():
-    def __init__(self, dataset: pd.DataFrame, targetClass: str, m: int):
+    def __init__(self, dataset: pd.DataFrame, targetClass: str, m: int, verbose: bool):
         self.dataset = dataset
         self.targetClass = targetClass
         self.divisionColumn = None # Expected: str, but only if it will split into more nodes
@@ -72,14 +74,15 @@ class DecisionTreeNode():
             return
 
         self.divisionColumn = self._bestDivisionCriteria()
-        print('-------------')
-        print(self.divisionColumn)
-        print('-------------')
+        if(verbose):
+            print('-------------')
+            print(self.divisionColumn)
+            print('-------------')
 
         if self.divisionColumn is not None:
             for key, datasetGroup in self.dataset.groupby(self.divisionColumn):
                 self.childs[key] = DecisionTreeNode(datasetGroup.drop(self.divisionColumn, axis=1),
-                                                    self.targetClass, m)
+                                                    self.targetClass, m, verbose)
         else:
             self.targetClass = self.majorityClass()
         return

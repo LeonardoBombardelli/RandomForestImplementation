@@ -1,8 +1,10 @@
+import argparse
+
 import pandas as pd
 import numpy as np
 
 from DecisionTree import DecisionTree
-from Utils import bootstrap
+from Utils import bootstrap, generate_kfolds
 
 class RandomForest():
     def __self___(self):
@@ -10,7 +12,7 @@ class RandomForest():
         self.targetClass = None
         self.trees = []
 
-    def train(self, dataset: pd.DataFrame, targetClass: str, n: int, m: int):
+    def train(self, dataset: pd.DataFrame, targetClass: str, n: int, m: int, verbose: bool):
         self.dataset = dataset
         self.targetClass = targetClass
         self.trees = []
@@ -18,7 +20,7 @@ class RandomForest():
         for i in range(n):
             treeData, _ = bootstrap(self.dataset, self.dataset.shape[0])
             tree = DecisionTree()
-            tree.train(treeData, targetClass, m)
+            tree.train(treeData, targetClass, m, verbose)
             self.trees.append(tree)
 
     def eval(self, testData: pd.DataFrame):
@@ -42,6 +44,13 @@ class RandomForest():
         print('ACCURACY := %f' % (hits / testDataSize))
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-v', '--verbose', action='store_true')
+    parser.add_argument('-k', nargs=1, type=int, required=True)
+    parser.add_argument('-m', nargs=1, type=int, required=True)
+    parser.add_argument('-n', nargs=1, type=int, required=True)
+    arguments = parser.parse_args()
+
     df = pd.DataFrame(
         {
             "label1": [1, 2, 1, 1, 1, 2, 2, 1, 2, 2],
@@ -52,8 +61,14 @@ if __name__ == "__main__":
     )
 
     # Just for testing
-    trainDF, testDF = bootstrap(df, df.shape[0])
+    folds = generate_kfolds(df, arguments.k[0])
 
-    randForest = RandomForest()
-    randForest.train(trainDF, "target", 5, 2)
-    randForest.eval(testDF)
+    for i in range(arguments.k[0]):
+        trainList = [x for j, x in enumerate(folds) if j != i]
+        trainDF = pd.concat(trainList)
+        testDF = folds[i]
+
+        randForest = RandomForest()
+        randForest.train(trainDF, "target", arguments.n[0],
+                         arguments.m[0], arguments.verbose)
+        randForest.eval(testDF)
