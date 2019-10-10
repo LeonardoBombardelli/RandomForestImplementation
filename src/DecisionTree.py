@@ -1,5 +1,5 @@
 import pandas as pd
-import numpy as np 
+import numpy as np
 from math import log2
 
 class DecisionTree():
@@ -8,22 +8,23 @@ class DecisionTree():
         self.targetClass = None # Expected: str
         self.firstNode = None # Expected: DecisionTreeNode
         self.atributes = None # Expected: list()
-        
+
     def train(self, dataset: pd.DataFrame, targetClass: str):
         if(dataset.shape[0] != dataset[targetClass].size):
-            raise("Number of rows in dataset != nmumber of labels in target class")
-        
+            raise Exception("Number of rows in dataset != nmumber of labels in target class")
+
         self.dataset = dataset
         self.targetClass = targetClass
         self.atributes = dataset.columns.values.tolist()
 
+        print(self.dataset)
         self.firstNode = DecisionTreeNode(self.dataset, self.targetClass)
-    
+
     def eval(self, dataToEval: pd.DataFrame):
         for column in dataToEval.columns.values.tolist():
             if(column not in self.atributes):
-                raise("Not all columns is an atribute in the Decision Tree!")
-        
+                raise Exception("Not all columns is an atribute in the Decision Tree!")
+
         returnList = []
         for _, row in dataToEval.iterrows():
             returnList.append(self._evalOneInstance(row))
@@ -39,7 +40,10 @@ class DecisionTree():
                 try:
                     actualNode = actualNode.childs[instance[actualNode.divisionColumn]]
                 except:
-                    raise("Node has no child for this instance") # TODO: Decide what to do in this case
+                    return actualNode.majorityClass()
+                    # raise Exception("Node has no child for this instance") # TODO: Decide what to do in this case
+                    # Return simple majority of target value in the current node?
+                    # But if there is a draw? Deterministically decide (i.e. artificial order of target values)?
         return(instanceClass)
 
 class DecisionTreeNode():
@@ -49,11 +53,11 @@ class DecisionTreeNode():
         self.divisionColumn = None # Expected: str, but only if it will split into more nodes
         self.predictedClass = None # Expected: any class or None
         self.childs = {} # The keys to the dics will be every value the atribute can have
-        
+
         if(self.dataset[self.targetClass].count() == 0):
             self.predictedClass = -1
             return
-        
+
         # If all instances in target column have the same class, returns this class
         if(self.dataset[self.targetClass].nunique() == 1):
             self.predictedClass = self.dataset[self.targetClass].tolist()[0]
@@ -63,29 +67,39 @@ class DecisionTreeNode():
         if(len(dataset.columns) == 1):
             self.predictedClass = self.dataset[self.targetClass].value_counts().index.tolist()[0]
             return
-        
+
         self.divisionColumn = self._bestDivisionCriteria()
+        print('-------------')
         print(self.divisionColumn)
-        
+        print('-------------')
+
         for key, datasetGroup in self.dataset.groupby(self.divisionColumn):
-            self.childs[key] = DecisionTreeNode(datasetGroup.drop(self.divisionColumn, axis=1), 
+            self.childs[key] = DecisionTreeNode(datasetGroup.drop(self.divisionColumn, axis=1),
                                                 self.targetClass)
         return
 
+    def majorityClass(self):
+        targetArray = self.dataset[self.targetClass].to_numpy()
+        classes, totalVotes = np.unique(targetArray, return_counts=True)
+        return classes[np.argmax(totalVotes)]
 
     def _bestDivisionCriteria(self):
         atributes = list(self.dataset.columns.values)
         generalEntropy = self._entropy(self.dataset[self.targetClass])
-        
+
         selectedAtribute = None
         maxGain = 0
         for atribute in atributes:
+            if atribute == self.targetClass:
+                continue
+
             newGain = self._gainForOneClass(atribute, generalEntropy)
             if(newGain > maxGain):
                 maxGain = newGain
                 selectedAtribute = atribute
+
         return(selectedAtribute)
-    
+
     def _entropy(self, column: pd.Series):
         n = column.count()
         valueCounts = column.value_counts().tolist()
@@ -93,18 +107,18 @@ class DecisionTreeNode():
         for x in valueCounts:
             result += (-x/n) * log2(x/n)
         return(result)
-        
+
     def _gainForOneClass(self, atribute, generalEntropy: float):
         n = self.dataset[self.targetClass].count()
         meanEntropy = 0
-        
+
         for _, group in self.dataset.groupby(atribute):
             groupSize = group[self.targetClass].count()
             meanEntropy += (groupSize/n) * self._entropy(group[self.targetClass])
-        
+
         return(generalEntropy - meanEntropy)
-        
-            
+
+
 if __name__ == "__main__":
     testDF = pd.DataFrame(
         {
@@ -114,8 +128,8 @@ if __name__ == "__main__":
             "target": [5, 3, 5, 5, 5]
         }
     )
-    
-    
+
+
     decTree = DecisionTree()
     decTree.train(testDF, "target")
 
@@ -127,4 +141,3 @@ if __name__ == "__main__":
         }
     )
     print(decTree.eval(evalDF))
-    
