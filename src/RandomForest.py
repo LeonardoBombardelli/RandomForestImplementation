@@ -30,6 +30,7 @@ class RandomForest():
             treesEvaluations.append(tree.eval(testData))
 
         hits = 0.0
+        # print(treesEvaluations)
         treesEvaluations = np.asarray(treesEvaluations)
         for i in range(testDataSize):
             treesVotes = treesEvaluations[:,i]
@@ -41,7 +42,8 @@ class RandomForest():
                 hits += 1
 
         # TODO: compute other metrics
-        print('ACCURACY := %f' % (hits / testDataSize))
+        print('TEST SIZE := %d' % testDataSize)
+        print('ACCURACY  := %f' % (hits / testDataSize))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -53,15 +55,15 @@ if __name__ == "__main__":
 
     df = pd.DataFrame(
         {
-            "label1": [1, 2, 1, 1, 1, 2, 2, 1, 2, 2],
-            "label2": [7, 8, 9, 10, 11, 7, 8, 11, 9, 10],
-            "label3": [13, 14, 15, 16, 17, 15, 14, 13, 17, 17],
-            "target": [5, 3, 5, 5, 5, 3, 3, 4, 2, 3]
+            "label1": [1, 2, 1, 1, 1, 2, 2, 1, 2, 2, 1, 2, 1, 2, 2, 1, 2, 2],
+            "label2": [7, 8, 9, 10, 11, 7, 8, 11, 9, 10, 6, 8, 10, 7, 8, 9, 11, 9],
+            "label3": [13, 14, 15, 16, 17, 15, 14, 13, 17, 17, 11, 15, 16, 11, 14, 21, 13, 12],
+            "target": [5, 3, 4, 5, 2, 5, 2, 5, 3, 4, 3, 4, 2, 3, 4, 3, 5, 2]
         }
     )
 
     # Just for testing
-    folds = generate_kfolds(df, arguments.k[0])
+    folds = generate_kfolds(df, "target", arguments.k[0])
 
     for i in range(arguments.k[0]):
         trainList = [x for j, x in enumerate(folds) if j != i]

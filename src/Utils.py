@@ -5,16 +5,25 @@ import numpy as np
 def bootstrap(dataset: pd.DataFrame, n: int):
     trainData = dataset.sample(n, replace=True)
     testData  = dataset.loc[~dataset.index.isin(trainData.index)]
-    return trainData, testData
+    return trainData.reset_index(drop=True), testData.reset_index(drop=True)
 
-def generate_kfolds(dataset: pd.DataFrame, k: int):
-    foldSize = int(dataset.shape[0] / k)
+def generate_kfolds(dataset: pd.DataFrame, target: str, k: int):
+    N = int(len(dataset) / k)
     folds = []
 
     for i in range(k-1):
-        fold = dataset.sample(foldSize)
-        folds.append(fold)
-        dataset = dataset.loc[~dataset.index.isin(fold.index)]
+        datasetLen = len(dataset)
+        df = dataset.sample(1).groupby(target, group_keys=False, sort=False).apply(
+             lambda x: x.sample(int(len(x)*N/len(dataset))))
 
-    folds.append(dataset)
+        dataset = dataset.loc[~dataset.index.isin(df.index)]
+
+        samples_left = int(N - len(df))
+        if samples_left > 0:
+            df = pd.concat([df, dataset.sample(samples_left)])
+
+        dataset = dataset.loc[~dataset.index.isin(df.index)]
+        folds.append(df.reset_index(drop=True))
+
+    folds.append(dataset.reset_index(drop=True))
     return folds

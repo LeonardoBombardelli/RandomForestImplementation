@@ -37,17 +37,20 @@ class DecisionTree():
     def _evalOneInstance(self, instance):
         instanceClass = None
         actualNode = self.firstNode
+
         while(instanceClass == None):
             if(actualNode.predictedClass != None):
                 instanceClass = actualNode.predictedClass
             else:
                 try:
-                    actualNode = actualNode.childs[instance[actualNode.divisionColumn]]
+                    if actualNode.divisionColumn is not None and \
+                       instance[actualNode.divisionColumn] in actualNode.childs:
+                        actualNode = actualNode.childs[instance[actualNode.divisionColumn]]
+                    else:
+                        return actualNode.majorityClass()
                 except:
                     return actualNode.majorityClass()
-                    # raise Exception("Node has no child for this instance") # TODO: Decide what to do in this case
-                    # Return simple majority of target value in the current node?
-                    # But if there is a draw? Deterministically decide (i.e. artificial order of target values)?
+
         return(instanceClass)
 
 class DecisionTreeNode():
@@ -84,7 +87,8 @@ class DecisionTreeNode():
                 self.childs[key] = DecisionTreeNode(datasetGroup.drop(self.divisionColumn, axis=1),
                                                     self.targetClass, m, verbose)
         else:
-            self.targetClass = self.majorityClass()
+            self.predictedClass = self.majorityClass()
+
         return
 
     def majorityClass(self):
