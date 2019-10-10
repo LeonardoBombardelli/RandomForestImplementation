@@ -27,3 +27,16 @@ def generate_kfolds(dataset: pd.DataFrame, target: str, k: int):
 
     folds.append(dataset.reset_index(drop=True))
     return folds
+
+def readCSV(path: str):
+    newDF = pd.read_csv(path, sep=";")
+    print(newDF.columns.values.tolist())
+    for key in newDF.columns.values.tolist():
+        labels = newDF[key].unique().tolist()
+        mapping = dict( zip(labels,range(len(labels))) )
+        newDF.replace({key: mapping},inplace=True)
+    return(newDF)
+
+if __name__ == "__main__":
+    print(readCSV("datasets/dadosBenchmark_validacaoAlgoritmoAD.csv"))
+    

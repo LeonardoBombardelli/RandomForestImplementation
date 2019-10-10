@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 
 from DecisionTree import DecisionTree
-from Utils import bootstrap, generate_kfolds
+from Utils import bootstrap, generate_kfolds, readCSV
 
 class RandomForest():
     def __self___(self):
@@ -53,17 +53,19 @@ if __name__ == "__main__":
     parser.add_argument('-n', nargs=1, type=int, required=True)
     arguments = parser.parse_args()
 
-    df = pd.DataFrame(
-        {
-            "label1": [1, 2, 1, 1, 1, 2, 2, 1, 2, 2, 1, 2, 1, 2, 2, 1, 2, 2],
-            "label2": [7, 8, 9, 10, 11, 7, 8, 11, 9, 10, 6, 8, 10, 7, 8, 9, 11, 9],
-            "label3": [13, 14, 15, 16, 17, 15, 14, 13, 17, 17, 11, 15, 16, 11, 14, 21, 13, 12],
-            "target": [5, 3, 4, 5, 2, 5, 2, 5, 3, 4, 3, 4, 2, 3, 4, 3, 5, 2]
-        }
-    )
+    # df = pd.DataFrame(
+    #     {
+    #         "label1": [1, 2, 1, 1, 1, 2, 2, 1, 2, 2, 1, 2, 1, 2, 2, 1, 2, 2],
+    #         "label2": [7, 8, 9, 10, 11, 7, 8, 11, 9, 10, 6, 8, 10, 7, 8, 9, 11, 9],
+    #         "label3": [13, 14, 15, 16, 17, 15, 14, 13, 17, 17, 11, 15, 16, 11, 14, 21, 13, 12],
+    #         "target": [5, 3, 4, 5, 2, 5, 2, 5, 3, 4, 3, 4, 2, 3, 4, 3, 5, 2]
+    #     }
+    # )
+    
+    df = readCSV("datasets/dadosBenchmark_validacaoAlgoritmoAD.csv")
 
     # Just for testing
-    folds = generate_kfolds(df, "target", arguments.k[0])
+    folds = generate_kfolds(df, "Joga", arguments.k[0])
 
     for i in range(arguments.k[0]):
         trainList = [x for j, x in enumerate(folds) if j != i]
@@ -71,6 +73,6 @@ if __name__ == "__main__":
         testDF = folds[i]
 
         randForest = RandomForest()
-        randForest.train(trainDF, "target", arguments.n[0],
+        randForest.train(trainDF, "Joga", arguments.n[0],
                          arguments.m[0], arguments.verbose)
         randForest.eval(testDF)
