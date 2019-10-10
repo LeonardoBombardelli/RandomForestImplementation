@@ -4,13 +4,13 @@ import numpy as np
 from DecisionTree import DecisionTree
 from Utils import bootstrap
 
-class RandomForest:
+class RandomForest():
     def __self___(self):
         self.dataset = None
         self.targetClass = None
         self.trees = []
 
-    def train(self, dataset: pd.DataFrame, targetClass: str, n: int):
+    def train(self, dataset: pd.DataFrame, targetClass: str, n: int, m: int):
         self.dataset = dataset
         self.targetClass = targetClass
         self.trees = []
@@ -18,7 +18,7 @@ class RandomForest:
         for i in range(n):
             treeData, _ = bootstrap(self.dataset, self.dataset.shape[0])
             tree = DecisionTree()
-            tree.train(treeData, targetClass)
+            tree.train(treeData, targetClass, m)
             self.trees.append(tree)
 
     def eval(self, testData: pd.DataFrame):
@@ -39,7 +39,7 @@ class RandomForest:
                 hits += 1
 
         # TODO: compute other metrics
-        print('ACCURACY = %f' % (hits / testDataSize))
+        print('ACCURACY := %f' % (hits / testDataSize))
 
 if __name__ == "__main__":
     df = pd.DataFrame(
@@ -55,5 +55,5 @@ if __name__ == "__main__":
     trainDF, testDF = bootstrap(df, df.shape[0])
 
     randForest = RandomForest()
-    randForest.train(trainDF, "target", 5)
+    randForest.train(trainDF, "target", 5, 2)
     randForest.eval(testDF)

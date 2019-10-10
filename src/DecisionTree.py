@@ -1,6 +1,8 @@
+import random
 import pandas as pd
 import numpy as np
 from math import log2
+
 
 class DecisionTree():
     def __init__(self):
@@ -9,7 +11,7 @@ class DecisionTree():
         self.firstNode = None # Expected: DecisionTreeNode
         self.atributes = None # Expected: list()
 
-    def train(self, dataset: pd.DataFrame, targetClass: str):
+    def train(self, dataset: pd.DataFrame, targetClass: str, m: int):
         if(dataset.shape[0] != dataset[targetClass].size):
             raise Exception("Number of rows in dataset != nmumber of labels in target class")
 
@@ -18,7 +20,7 @@ class DecisionTree():
         self.atributes = dataset.columns.values.tolist()
 
         print(self.dataset)
-        self.firstNode = DecisionTreeNode(self.dataset, self.targetClass)
+        self.firstNode = DecisionTreeNode(self.dataset, self.targetClass, m)
 
     def eval(self, dataToEval: pd.DataFrame):
         for column in dataToEval.columns.values.tolist():
@@ -47,12 +49,13 @@ class DecisionTree():
         return(instanceClass)
 
 class DecisionTreeNode():
-    def __init__(self, dataset: pd.DataFrame, targetClass: str):
+    def __init__(self, dataset: pd.DataFrame, targetClass: str, m: int):
         self.dataset = dataset
         self.targetClass = targetClass
         self.divisionColumn = None # Expected: str, but only if it will split into more nodes
         self.predictedClass = None # Expected: any class or None
         self.childs = {} # The keys to the dics will be every value the atribute can have
+        self.m = m       # m attributes to choose from
 
         if(self.dataset[self.targetClass].count() == 0):
             self.predictedClass = -1
@@ -73,9 +76,12 @@ class DecisionTreeNode():
         print(self.divisionColumn)
         print('-------------')
 
-        for key, datasetGroup in self.dataset.groupby(self.divisionColumn):
-            self.childs[key] = DecisionTreeNode(datasetGroup.drop(self.divisionColumn, axis=1),
-                                                self.targetClass)
+        if self.divisionColumn is not None:
+            for key, datasetGroup in self.dataset.groupby(self.divisionColumn):
+                self.childs[key] = DecisionTreeNode(datasetGroup.drop(self.divisionColumn, axis=1),
+                                                    self.targetClass, m)
+        else:
+            self.targetClass = self.majorityClass()
         return
 
     def majorityClass(self):
@@ -85,14 +91,13 @@ class DecisionTreeNode():
 
     def _bestDivisionCriteria(self):
         atributes = list(self.dataset.columns.values)
+        atributes.pop(atributes.index(self.targetClass))
+        atributes = random.sample(atributes, min(self.m, len(atributes)))
         generalEntropy = self._entropy(self.dataset[self.targetClass])
 
         selectedAtribute = None
         maxGain = 0
         for atribute in atributes:
-            if atribute == self.targetClass:
-                continue
-
             newGain = self._gainForOneClass(atribute, generalEntropy)
             if(newGain > maxGain):
                 maxGain = newGain
@@ -131,7 +136,7 @@ if __name__ == "__main__":
 
 
     decTree = DecisionTree()
-    decTree.train(testDF, "target")
+    decTree.train(testDF, "target", 2)
 
     evalDF = pd.DataFrame(
         {
