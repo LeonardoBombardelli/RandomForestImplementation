@@ -2,6 +2,7 @@ import random
 import pandas as pd
 import numpy as np
 from math import log2
+from Utils import readCSV
 
 
 class DecisionTree():
@@ -11,7 +12,7 @@ class DecisionTree():
         self.firstNode = None # Expected: DecisionTreeNode
         self.atributes = None # Expected: list()
 
-    def train(self, dataset: pd.DataFrame, targetClass: str, m: int, verbose: bool):
+    def train(self, dataset: pd.DataFrame, targetClass: str, m: int, verbose: bool = True):
         if(dataset.shape[0] != dataset[targetClass].size):
             raise Exception("Number of rows in dataset != nmumber of labels in target class")
 
@@ -33,6 +34,29 @@ class DecisionTree():
         for _, row in dataToEval.iterrows():
             returnList.append(self._evalOneInstance(row))
         return(returnList)
+    
+    def printTree(self):
+        if(self.firstNode == None):
+            return("THERE IS NO TREE TO PRINT")
+        count = 0
+        evalList = [self.firstNode]
+        
+        textToReturn = ""
+        
+        continueSearch = True
+        while(continueSearch):
+            if(evalList == []):
+                continueSearch = False
+            else:
+                nextNode = evalList.pop(0)
+                if(nextNode.divisionColumn != None):
+                    textToReturn += "DECISION TREE:\n " + str(count) + ": " + nextNode.divisionColumn + "\nGain: " + str(nextNode.gain) + "\n\n"
+                    count += 1
+                    for i in nextNode.childs.keys():
+                        evalList.append(nextNode.childs[i])
+        return(textToReturn)
+
+
 
     def _evalOneInstance(self, instance):
         instanceClass = None
@@ -61,6 +85,7 @@ class DecisionTreeNode():
         self.predictedClass = None # Expected: any class or None
         self.childs = {} # The keys to the dics will be every value the atribute can have
         self.m = m       # m attributes to choose from
+        self.gain = None
 
         if(self.dataset[self.targetClass].count() == 0):
             self.predictedClass = -1
@@ -76,10 +101,11 @@ class DecisionTreeNode():
             self.predictedClass = self.dataset[self.targetClass].value_counts().index.tolist()[0]
             return
 
-        self.divisionColumn = self._bestDivisionCriteria()
+        self.divisionColumn, self.gain = self._bestDivisionCriteria()
         if(verbose):
             print('-------------')
             print(self.divisionColumn)
+            print(self.gain)
             print('-------------')
 
         if self.divisionColumn is not None:
@@ -110,7 +136,7 @@ class DecisionTreeNode():
                 maxGain = newGain
                 selectedAtribute = atribute
 
-        return(selectedAtribute)
+        return(selectedAtribute, maxGain)
 
     def _entropy(self, column: pd.Series):
         n = column.count()
@@ -132,24 +158,28 @@ class DecisionTreeNode():
 
 
 if __name__ == "__main__":
-    testDF = pd.DataFrame(
-        {
-            "label1": [1, 2, 1, 1, 1],
-            "label2": [7, 8, 9, 10, 11],
-            "label3": [13, 14, 15, 16, 17],
-            "target": [5, 3, 5, 5, 5]
-        }
-    )
+    # testDF = pd.DataFrame(
+    #     {
+    #         "label1": [1, 2, 1, 1, 1],
+    #         "label2": [7, 8, 9, 10, 11],
+    #         "label3": [13, 14, 15, 16, 17],
+    #         "target": [5, 3, 5, 5, 5]
+    #     }
+    # )
+    
+    testDF = readCSV("datasets/dadosBenchmark_validacaoAlgoritmoAD.csv")
 
 
     decTree = DecisionTree()
-    decTree.train(testDF, "target", 2)
+    decTree.train(testDF, "Joga", 4)
+    
+    print(decTree.printTree())
 
-    evalDF = pd.DataFrame(
-        {
-            "label1": [1],
-            "label2": [5],
-            "label3": [8]
-        }
-    )
-    print(decTree.eval(evalDF))
+    # evalDF = pd.DataFrame(
+    #     {
+    #         "label1": [1],
+    #         "label2": [5],
+    #         "label3": [8]
+    #     }
+    # )
+    # print(decTree.eval(evalDF))
