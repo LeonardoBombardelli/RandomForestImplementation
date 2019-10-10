@@ -18,7 +18,29 @@ class DecisionTree():
         self.atributes = dataset.columns.values.tolist()
 
         self.firstNode = DecisionTreeNode(self.dataset, self.targetClass)
+    
+    def eval(self, dataToEval: pd.DataFrame):
+        for column in dataToEval.columns.values.tolist():
+            if(column not in self.atributes):
+                raise("Not all columns is an atribute in the Decision Tree!")
         
+        returnList = []
+        for _, row in dataToEval.iterrows():
+            returnList.append(self._evalOneInstance(row))
+        return(returnList)
+
+    def _evalOneInstance(self, instance):
+        instanceClass = None
+        actualNode = self.firstNode
+        while(instanceClass == None):
+            if(actualNode.predictedClass != None):
+                instanceClass = actualNode.predictedClass
+            else:
+                try:
+                    actualNode = actualNode.childs[instance[actualNode.divisionColumn]]
+                except:
+                    raise("Node has no child for this instance") # TODO: Decide what to do in this case
+        return(instanceClass)
 
 class DecisionTreeNode():
     def __init__(self, dataset: pd.DataFrame, targetClass: str):
@@ -96,4 +118,13 @@ if __name__ == "__main__":
     
     decTree = DecisionTree()
     decTree.train(testDF, "target")
+
+    evalDF = pd.DataFrame(
+        {
+            "label1": [1],
+            "label2": [5],
+            "label3": [8]
+        }
+    )
+    print(decTree.eval(evalDF))
     
