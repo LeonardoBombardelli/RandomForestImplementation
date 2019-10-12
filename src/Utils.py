@@ -37,7 +37,6 @@ def readCSV(path: str):
     It could be solved by making the "mapping" variable in this code a permanent atribute of our DecisionTree, though.
     """
     newDF = pd.read_csv(path, sep=",")
-    print(newDF.columns.values.tolist())
     for key in newDF.columns.values.tolist():
         if(newDF[key].dtype.name == "int64" or newDF[key].dtype.name == "float64"):
             newDF = numericalColumnToNumber(newDF, key)

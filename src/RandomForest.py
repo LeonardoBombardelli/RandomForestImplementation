@@ -44,6 +44,8 @@ class RandomForest():
         # TODO: compute other metrics
         print('TEST SIZE := %d' % testDataSize)
         print('ACCURACY  := %f' % (hits / testDataSize))
+        newStr = '\nTEST SIZE := ' + str(testDataSize) + "\nACCURACY  := " + str(hits / testDataSize)
+        return(newStr)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -66,7 +68,7 @@ if __name__ == "__main__":
     
     df = readCSV(arguments.dataset[0])
 
-    print(df.shape())
+    print(df.shape)
     # Just for testing
     folds = generate_kfolds(df, arguments.target[0], arguments.k[0])
 
