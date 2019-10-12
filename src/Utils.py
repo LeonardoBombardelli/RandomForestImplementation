@@ -29,14 +29,42 @@ def generate_kfolds(dataset: pd.DataFrame, target: str, k: int):
     return folds
 
 def readCSV(path: str):
-    newDF = pd.read_csv(path, sep=";")
+    """
+    WARNING: WE NEED TO LOAD OUR DATASET FOR BOTH TRAIN AND EVAL INSTANCES IN THE SAME CALL OF READCSV
+    THIS MAKES SENSE IN OUR ASSIGNMENT SINCE WE'RE NOT SAVING OUR MODELS ANYWHERE AND WE ONLY RUN READCSV ONCE
+    BUT IF WE RUN IT TWICE, ONE TIME FOR THE TRAIN DATASET AND THE OTHER TIME FOR THE EVAL DATASET, WE MIGHT
+    LOAD THEM WITH DIFFERENT LABELS.
+    It could be solved by making the "mapping" variable in this code a permanent atribute of our DecisionTree, though.
+    """
+    newDF = pd.read_csv(path, sep=",")
     print(newDF.columns.values.tolist())
     for key in newDF.columns.values.tolist():
-        labels = newDF[key].unique().tolist()
-        mapping = dict( zip(labels,range(len(labels))) )
-        newDF.replace({key: mapping},inplace=True)
+        if(newDF[key].dtype.name == "int64" or newDF[key].dtype.name == "float64"):
+            newDF = numericalColumnToNumber(newDF, key)
+        else:
+            newDF = categoricalColumnToNumber(newDF, key)
+    return(newDF)
+
+def categoricalColumnToNumber(newDF, key):
+    labels = newDF[key].unique().tolist()
+    mapping = dict( zip(labels,range(len(labels))) )
+    newDF.replace({key: mapping},inplace=True)
+    return(newDF)
+
+def numericalColumnToNumber(newDF, key):
+    """
+    TODO: Generalize cutting point for N different classes
+    """
+    cuttingPoint = newDF[key].median()
+    returnList = []
+    for value in newDF[key]:
+        if(value > cuttingPoint):
+            returnList.append(1)
+        else:
+            returnList.append(0)
+    newDF[key] = pd.Series(returnList)
     return(newDF)
 
 if __name__ == "__main__":
-    print(readCSV("datasets/dadosBenchmark_validacaoAlgoritmoAD.csv"))
-    
+    #print(readCSV("datasets/dadosBenchmark_validacaoAlgoritmoAD.csv"))
+    print(readCSV("datasets/german-credit.csv"))

@@ -51,6 +51,8 @@ if __name__ == "__main__":
     parser.add_argument('-k', nargs=1, type=int, required=True)
     parser.add_argument('-m', nargs=1, type=int, required=True)
     parser.add_argument('-n', nargs=1, type=int, required=True)
+    parser.add_argument('-dataset', nargs=1, type=str, required=True)
+    parser.add_argument('-target', nargs=1, type=str, required=True)
     arguments = parser.parse_args()
 
     # df = pd.DataFrame(
@@ -62,10 +64,11 @@ if __name__ == "__main__":
     #     }
     # )
     
-    df = readCSV("datasets/dadosBenchmark_validacaoAlgoritmoAD.csv")
+    df = readCSV(arguments.dataset[0])
 
+    print(df.shape())
     # Just for testing
-    folds = generate_kfolds(df, "Joga", arguments.k[0])
+    folds = generate_kfolds(df, arguments.target[0], arguments.k[0])
 
     for i in range(arguments.k[0]):
         trainList = [x for j, x in enumerate(folds) if j != i]
@@ -73,6 +76,6 @@ if __name__ == "__main__":
         testDF = folds[i]
 
         randForest = RandomForest()
-        randForest.train(trainDF, "Joga", arguments.n[0],
+        randForest.train(trainDF, arguments.target[0], arguments.n[0],
                          arguments.m[0], arguments.verbose)
         randForest.eval(testDF)
