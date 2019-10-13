@@ -74,7 +74,7 @@ def readCSV(path: str, target: str):
     newDF = categoricalColumnToNumber(newDF, target)
     for key in listKeys:
         if(newDF[key].dtype.name == "int64" or newDF[key].dtype.name == "float64"):
-            newDF = numericalColumnToNumber(newDF, key)
+            newDF = numericalColumnToNumber(newDF, key, fourCutting=True)
         else:
             newDF = categoricalColumnToNumber(newDF, key)
     return(newDF)
@@ -89,20 +89,47 @@ def categoricalColumnToNumber(newDF, key):
     newDF.replace({key: mapping},inplace=True)
     return(newDF)
 
-def numericalColumnToNumber(newDF, key):
+def numericalColumnToNumber(newDF, key, fourCutting = False):
     """
     TODO: Generalize cutting point for N different classes
     """
-    cuttingPoint = newDF[key].median()
-    returnList = []
-    for value in newDF[key]:
-        if(value > cuttingPoint):
-            returnList.append(1)
-        else:
-            returnList.append(0)
-    newDF[key] = pd.Series(returnList)
-    return(newDF)
+    if(fourCutting == False):
+        cuttingPoint = newDF[key].median()
+        returnList = []
+        for value in newDF[key]:
+            if(value > cuttingPoint):
+                returnList.append(1)
+            else:
+                returnList.append(0)
+        newDF[key] = pd.Series(returnList)
+        return(newDF)
+    
+    # Could have been a lot more optimized :c
+    else:
+        cuttingPoints = []
+        throwawayDF = newDF[key]
+        upperDF = throwawayDF[throwawayDF >= throwawayDF.median()]
+        lowerDF = throwawayDF[throwawayDF < throwawayDF.median()]
+        
+        cuttingPoints.append(lowerDF.median())
+        cuttingPoints.append(throwawayDF.median())
+        cuttingPoints.append(upperDF.median())
+
+        returnList = []
+        
+        for value in throwawayDF:
+            if(value < cuttingPoints[0]):
+                returnList.append(0)
+            elif(value < cuttingPoints[1]):
+                returnList.append(1)
+            elif(value < cuttingPoints[2]):
+                returnList.append(2)
+            else:
+                returnList.append(3)
+        newDF[key] = pd.Series(returnList)
+        return(newDF)
 
 if __name__ == "__main__":
     #print(readCSV("datasets/dadosBenchmark_validacaoAlgoritmoAD.csv"))
-    print(readCSV("datasets/wine.csv", "class"))
+    print(readCSV("datasets/german-credit.csv", "class"))
+
