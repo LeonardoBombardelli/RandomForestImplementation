@@ -167,7 +167,7 @@ if __name__ == "__main__":
     #     }
     # )
     
-    testDF = readCSV("datasets/dadosBenchmark_validacaoAlgoritmoAD.csv")
+    testDF = readCSV("datasets/dadosBenchmark_validacaoAlgoritmoAD.csv", "Joga")
 
 
     decTree = DecisionTree()

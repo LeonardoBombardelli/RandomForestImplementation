@@ -88,7 +88,7 @@ if __name__ == "__main__":
     #     }
     # )
 
-    df = readCSV(arguments.dataset[0])
+    df = readCSV(arguments.dataset[0], arguments.target[0])
 
     print(df.shape)
     # Just for testing

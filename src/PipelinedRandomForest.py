@@ -13,16 +13,16 @@ if __name__ == "__main__":
     parser.add_argument('-alias', nargs=1, type=str, required=True)
     arguments = parser.parse_args()
 
-    newDF = readCSV(arguments.dataset[0])
+    newDF = readCSV(arguments.dataset[0], arguments.target[0])
 
-    nTrees = [5, 10, 20, 30, 40, 50]
-    k = 4
+    nTrees = [100]
+    k = 8
     m = floor(sqrt(newDF.shape[1]))
 
     for n in nTrees:
         print("-----------------")
         print("Number of trees: " + str(n))
-        newDF = readCSV(arguments.dataset[0])
+        newDF = readCSV(arguments.dataset[0], arguments.target[0])
 
         folds = generate_kfolds(newDF, arguments.target[0], k)
 
