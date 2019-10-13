@@ -4,7 +4,9 @@ import pandas as pd
 import numpy as np
 
 from DecisionTree import DecisionTree
-from Utils import bootstrap, generate_kfolds, readCSV
+from Utils import *
+
+from sklearn.metrics import f1_score
 
 class RandomForest():
     def __self___(self):
@@ -25,11 +27,25 @@ class RandomForest():
 
     def eval(self, testData: pd.DataFrame):
         testDataSize = testData.shape[0]
+        targetClassValues = np.unique(testData[self.targetClass])
+        targetClassValues = np.append(targetClassValues,
+                            np.unique(self.dataset[self.targetClass]))
+        targetClassValues = np.unique(targetClassValues)
+
+        testLabels = testData[self.targetClass].values
+        outputLabels = []
+
         treesEvaluations = []
         for tree in self.trees:
             treesEvaluations.append(tree.eval(testData))
 
         hits = 0.0
+        results = {}
+
+        for c in targetClassValues:
+            results[c] = {'VP': 0, 'FP': 0, 'FN': 0, 'eval': False}
+
+
         # print(treesEvaluations)
         treesEvaluations = np.asarray(treesEvaluations)
         for i in range(testDataSize):
@@ -38,13 +54,22 @@ class RandomForest():
             outputClass = classes[np.argmax(totalVotes)]
             instanceLabel = testData.iloc[i][self.targetClass]
 
+            outputLabels.append(outputClass)
+            results[outputClass]['eval'] = True
+            results[instanceLabel]['eval'] = True
             if outputClass == instanceLabel:
                 hits += 1
+                results[outputClass]['VP'] += 1
+            else:
+                results[outputClass]['FP'] += 1
+                results[instanceLabel]['FN'] += 1
 
-        # TODO: compute other metrics
-        print('TEST SIZE := %d' % testDataSize)
-        print('ACCURACY  := %f' % (hits / testDataSize))
-        newStr = '\nTEST SIZE := ' + str(testDataSize) + "\nACCURACY  := " + str(hits / testDataSize)
+        f1 = calculateF1(results)
+        print('TEST SIZE  := %d' % testDataSize)
+        print('ACCURACY   := %f' % (hits / testDataSize))
+        print('F1         := %f' % f1)
+        print('SKLEARN F1 := %f' % f1_score(testLabels, np.asarray(outputLabels), average='macro'))
+        newStr = '\nTEST SIZE := ' + str(testDataSize) + "\nACCURACY  := " + str(hits / testDataSize) + '\nF1        := %f' + str(f1)
         return(newStr)
 
 if __name__ == "__main__":
@@ -65,7 +90,7 @@ if __name__ == "__main__":
     #         "target": [5, 3, 4, 5, 2, 5, 2, 5, 3, 4, 3, 4, 2, 3, 4, 3, 5, 2]
     #     }
     # )
-    
+
     df = readCSV(arguments.dataset[0])
 
     print(df.shape)

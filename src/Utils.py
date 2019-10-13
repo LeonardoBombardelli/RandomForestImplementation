@@ -2,6 +2,27 @@ import pandas as pd
 import numpy as np
 
 
+def calculateF1(results: dict):
+    sum  = 0.0
+    size = 0.0
+
+    for c in results:
+        if not results[c]['eval']:
+            continue
+        prec = 0.0
+        rev  = 0.0
+
+        if results[c]['VP'] != 0 or results[c]['FP'] != 0:
+            prec = float(results[c]['VP']) / float(results[c]['VP'] + results[c]['FP'])
+
+        if results[c]['VP'] != 0 and results[c]['FN'] != 0:
+            rev  = float(results[c]['VP']) / float(results[c]['VP'] + results[c]['FN'])
+
+        sum += 2.0 * ((prec * rev) / (prec + rev))
+        size += 1.0
+
+    return sum / size
+
 def bootstrap(dataset: pd.DataFrame, n: int):
     trainData = dataset.sample(n, replace=True)
     testData  = dataset.loc[~dataset.index.isin(trainData.index)]
@@ -28,6 +49,17 @@ def generate_kfolds(dataset: pd.DataFrame, target: str, k: int):
     folds.append(dataset.reset_index(drop=True))
     return folds
 
+def getSeparator(path: str):
+    line = ''
+
+    with open(path) as file:
+        line = next(file)
+
+    if line.find(',') != -1:
+        return ','
+    else:
+        return ';'
+
 def readCSV(path: str):
     """
     WARNING: WE NEED TO LOAD OUR DATASET FOR BOTH TRAIN AND EVAL INSTANCES IN THE SAME CALL OF READCSV
@@ -36,7 +68,7 @@ def readCSV(path: str):
     LOAD THEM WITH DIFFERENT LABELS.
     It could be solved by making the "mapping" variable in this code a permanent atribute of our DecisionTree, though.
     """
-    newDF = pd.read_csv(path, sep=",")
+    newDF = pd.read_csv(path, sep=getSeparator(path))
     for key in newDF.columns.values.tolist():
         if(newDF[key].dtype.name == "int64" or newDF[key].dtype.name == "float64"):
             newDF = numericalColumnToNumber(newDF, key)
