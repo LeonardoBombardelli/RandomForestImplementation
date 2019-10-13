@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from RandomForest import RandomForest
 import pandas as pd
 from Utils import bootstrap, generate_kfolds, readCSV
@@ -21,7 +23,7 @@ if __name__ == "__main__":
         print("-----------------")
         print("Number of trees: " + str(n))
         newDF = readCSV(arguments.dataset[0])
-        
+
         folds = generate_kfolds(newDF, arguments.target[0], k)
 
         for i in range(k):
@@ -35,5 +37,3 @@ if __name__ == "__main__":
             newStr = randForest.eval(testDF)
             with open("outputResults/" + str(n) + arguments.alias[0] + ".txt", "a") as outputFile:
                 outputFile.write(newStr)
-
-    
