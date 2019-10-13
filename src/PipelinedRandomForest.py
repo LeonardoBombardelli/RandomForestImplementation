@@ -16,7 +16,7 @@ if __name__ == "__main__":
     newDF = readCSV(arguments.dataset[0])
 
     nTrees = [5, 10, 20, 30, 40, 50]
-    k = 10
+    k = 4
     m = floor(sqrt(newDF.shape[1]))
 
     for n in nTrees:

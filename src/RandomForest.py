@@ -6,8 +6,6 @@ import numpy as np
 from DecisionTree import DecisionTree
 from Utils import *
 
-from sklearn.metrics import f1_score
-
 class RandomForest():
     def __self___(self):
         self.dataset = None
@@ -68,8 +66,7 @@ class RandomForest():
         print('TEST SIZE  := %d' % testDataSize)
         print('ACCURACY   := %f' % (hits / testDataSize))
         print('F1         := %f' % f1)
-        print('SKLEARN F1 := %f' % f1_score(testLabels, np.asarray(outputLabels), average='macro'))
-        newStr = '\nTEST SIZE := ' + str(testDataSize) + "\nACCURACY  := " + str(hits / testDataSize) + '\nF1        := %f' + str(f1)
+        newStr = '\nTEST SIZE := ' + str(testDataSize) + "\nACCURACY  := " + str(hits / testDataSize) + '\nF1        := ' + str(f1)
         return(newStr)
 
 if __name__ == "__main__":
