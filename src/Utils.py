@@ -9,8 +9,8 @@ def calculateF1(results: dict):
     for c in results:
         if not results[c]['eval']:
             continue
-        prec = 0.0
-        rev  = 0.0
+        prec = 1.0
+        rev  = 1.0
 
         if results[c]['VP'] != 0 or results[c]['FP'] != 0:
             prec = float(results[c]['VP']) / float(results[c]['VP'] + results[c]['FP'])
