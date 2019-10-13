@@ -28,7 +28,7 @@ def generate_kfolds(dataset: pd.DataFrame, target: str, k: int):
     folds.append(dataset.reset_index(drop=True))
     return folds
 
-def readCSV(path: str):
+def readCSV(path: str, target: str):
     """
     WARNING: WE NEED TO LOAD OUR DATASET FOR BOTH TRAIN AND EVAL INSTANCES IN THE SAME CALL OF READCSV
     THIS MAKES SENSE IN OUR ASSIGNMENT SINCE WE'RE NOT SAVING OUR MODELS ANYWHERE AND WE ONLY RUN READCSV ONCE
@@ -37,7 +37,10 @@ def readCSV(path: str):
     It could be solved by making the "mapping" variable in this code a permanent atribute of our DecisionTree, though.
     """
     newDF = pd.read_csv(path, sep=",")
-    for key in newDF.columns.values.tolist():
+    listKeys = newDF.columns.values.tolist()
+    listKeys.remove(target)
+    newDF = categoricalColumnToNumber(newDF, target)
+    for key in listKeys:
         if(newDF[key].dtype.name == "int64" or newDF[key].dtype.name == "float64"):
             newDF = numericalColumnToNumber(newDF, key)
         else:
@@ -46,6 +49,10 @@ def readCSV(path: str):
 
 def categoricalColumnToNumber(newDF, key):
     labels = newDF[key].unique().tolist()
+    if(newDF[key].dtype.name == "int64"):
+        for i, label in enumerate(labels):
+            labels[i] = str(label)
+        newDF[key] = newDF[key].apply(str)
     mapping = dict( zip(labels,range(len(labels))) )
     newDF.replace({key: mapping},inplace=True)
     return(newDF)
@@ -66,4 +73,4 @@ def numericalColumnToNumber(newDF, key):
 
 if __name__ == "__main__":
     #print(readCSV("datasets/dadosBenchmark_validacaoAlgoritmoAD.csv"))
-    print(readCSV("datasets/german-credit.csv"))
+    print(readCSV("datasets/wine.csv", "class"))
